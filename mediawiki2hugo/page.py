@@ -1,0 +1,94 @@
+import hashlib
+
+from unidecode import unidecode
+from xml.etree import ElementTree
+from os import path
+from jinja2 import Environment, FileSystemLoader
+from shutil import copyfile
+
+from .mediawiki import replace_syntax, get_tags, IMAGES, PAGES
+from .file import get_filename
+
+NAMESPACE = {"mediawiki": "http://www.mediawiki.org/xml/export-0.10/"}
+BLACKLIST = ("Main Page",)
+
+
+def get_template():
+    file_loader = FileSystemLoader("mediawiki2hugo")
+    env = Environment(loader=file_loader)
+    return env.get_template("page.md")
+
+
+def copy_images(image_source_path, image_destination_path):
+    for image in IMAGES:
+        md5_digest = hashlib.md5(image.encode()).hexdigest()
+        first_folder = md5_digest[0]
+        second_folder = md5_digest[0:2]
+        image_source_file = path.join(
+            image_source_path, first_folder, second_folder, image
+        )
+        image_destination_file = path.join(image_destination_path, image)
+        copyfile(image_source_file, image_destination_file)
+        # print(image, md5_digest, image_source_file, image_destination_file)
+
+
+def create_missing_pages(md_output_path):
+    for page in PAGES:
+        page_file = get_filename(page, md_output_path)
+        if not path.isfile(page_file):
+            # print(page_file)
+            create_md(page, "placeholder", md_output_path)
+
+
+def create_md(title, text, md_output_path):
+    try:
+        # category pages only contain the tag, ignore them
+        tags, text = get_tags(text)
+        if not text:
+            return
+
+        filename = get_filename(title, md_output_path)
+        template = get_template()
+
+        print("---", title)
+        text = replace_syntax(text)
+
+        output = template.render(title=title, text=text, tags=tags)
+
+        md = open(filename, "w")
+        md.write(output)
+        md.close()
+    except TypeError:
+        print(title, text)
+
+
+def parse_dump(dump_file, image_path, output_path):
+    root = ElementTree.parse(dump_file).getroot()
+    i = 0
+    for page in root.iterfind("mediawiki:page", NAMESPACE):
+        title, text = parse_page(page)
+        if not title.startswith("File:") and title not in BLACKLIST:
+            # if title in ("Connect QEMU ASA to IOU Router",):
+            # print("---", title[0:25], "\n", text[0:50])
+            create_md(title, text, output_path)
+            i += 1
+
+        if i > 20:
+            break
+
+
+def get_title(page):
+    for title in page.iterfind("mediawiki:title", NAMESPACE):
+        return title.text
+
+
+def get_text(page):
+    for revision in page.iterfind("mediawiki:revision", NAMESPACE):
+        for text in revision.iterfind("mediawiki:text", NAMESPACE):
+            return text.text
+
+
+def parse_page(page):
+    title = get_title(page)
+    text = get_text(page)
+    return title, text
