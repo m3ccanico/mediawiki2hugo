@@ -20,7 +20,25 @@ def replace_lists(text):
     text = re.sub(r"(^|\n)\*\*\*", r"\1  *", text)
     text = re.sub(r"(^|\n)\*\*", r"\1 *", text)
     text = re.sub(r"(^|\n)\*", r"\1*", text)
-    return text
+
+    # make sure there is an empty line before a list
+    lines = text.split("\n")
+    new_lines = []
+    in_block = False
+    for idx, line in enumerate(lines):
+        matches = re.match(r"^\*", line)
+        if not in_block and matches:
+            in_block = True
+            if not re.match(r"^$", lines[idx - 1]):
+                new_lines.append("")
+            new_lines.append(line)
+        elif in_block and not matches:
+            in_block = False
+            new_lines.append(line)
+        else:
+            new_lines.append(line)
+
+    return "\n".join(new_lines)
 
 
 def replace_description(text):
@@ -145,6 +163,20 @@ def replace_headers(text):
     return text
 
 
+def replace_syntax_highlight(text):
+    # <syntaxhighlight lang="Python" line>
+    # {{< highlight python "linenos=table,hl_lines=1 3" >}}
+    text = re.sub(
+        r'<syntaxhighlight lang="(.*)"( line)?>', r"{{< highlight \1>}}", text
+    )
+    # </syntaxhighlight>
+    # {{</ highlight >}}
+    text = text.replace("</syntaxhighlight>", "{{< / highlight >}}")
+
+    text = text.replace("{{< highlight >}}", "{{< highlight bash>}}")
+    return text
+
+
 def replace_syntax(text):
     text = replace_code(text)
     text = replace_headers(text)
@@ -153,4 +185,5 @@ def replace_syntax(text):
     text = replace_lists(text)
     text = replace_images(text)
     text = replace_links(text)
+    text = replace_syntax_highlight(text)
     return text

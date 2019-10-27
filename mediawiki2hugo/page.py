@@ -101,13 +101,13 @@ def parse_dump(dump_file, image_path, output_path):
     i = 0
     for page in root.iterfind("mediawiki:page", NAMESPACE):
         title, text = parse_page(page)
-        # if (
-        #     not title.startswith("File:")
-        #     and title not in BLACKLIST
-        #     and text
-        #     and not (text.startswith("#redirect") or text.startswith("#REDIRECT"))
-        # ):
-        if title in ("AWS - VPC",):
+        if (
+            not title.startswith("File:")
+            and title not in BLACKLIST
+            and text
+            and not (text.startswith("#redirect") or text.startswith("#REDIRECT"))
+        ):
+            # if title in ("AWS - VPC",):
             # print("---", title[0:25], "\n", text[0:50])
             create_md(title, text, output_path)
             i += 1
