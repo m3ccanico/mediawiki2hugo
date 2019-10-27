@@ -11,6 +11,7 @@ def get_filename_for_title(title):
     filename = title.replace(" - ", "-")
     filename = filename.replace(" ", "-")
     filename = filename.replace("/", "-")
+    filename = filename.replace("#", "-")
     filename = unidecode(filename)
     filename = f"{filename}.md"
 

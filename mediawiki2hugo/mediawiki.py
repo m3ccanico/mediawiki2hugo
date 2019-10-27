@@ -1,9 +1,12 @@
 import re
+from collections import defaultdict
 
 from .file import get_filename_for_title, get_filename_for_image
 
 IMAGES = set()
 PAGES = set()
+REDIRECT_F2A = defaultdict(set)
+REDIRECT_A2F = dict()
 
 
 def get_tags(text):
@@ -82,8 +85,12 @@ def replace_links(text):
     matches = re.findall(link_regexp, text)
     if matches:
         for match in matches:
-            PAGES.add(match[0])
-            filename = get_filename_for_title(match[0])
+            target = match[0]
+            if target in REDIRECT_A2F:
+                target = REDIRECT_A2F[target]
+            PAGES.add(target)
+            filename = get_filename_for_title(target)
+
             if len(match) == 2:
                 search = f"[[{match[0]}|{match[1]}]]"
             if len(match) == 3:
@@ -99,8 +106,12 @@ def replace_links(text):
     matches = re.findall(link_regexp, text)
     if matches:
         for match in matches:
-            PAGES.add(match[0])
-            filename = get_filename_for_title(match[0])
+            target = match[0]
+            if target in REDIRECT_A2F:
+                target = REDIRECT_A2F[target]
+            PAGES.add(target)
+            filename = get_filename_for_title(target)
+
             search = f"[[{match[0]}]] ({match[1]})"
             replace = f'[{match[0]}]({{{{< ref "{filename}" >}}}})'
             # print(match, search, replace)
@@ -113,8 +124,12 @@ def replace_links(text):
     matches = re.findall(link_regexp, text)
     if matches:
         for match in matches:
-            PAGES.add(match)
-            filename = get_filename_for_title(match)
+            target = match
+            if target in REDIRECT_A2F:
+                target = REDIRECT_A2F[target]
+            PAGES.add(target)
+            filename = get_filename_for_title(target)
+
             search = f"[[{match}]]"
             replace = f'[{match}]({{{{< ref "{filename}" >}}}})'
             # print(match, search, replace)
