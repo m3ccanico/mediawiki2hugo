@@ -7,7 +7,7 @@ from os import path
 from jinja2 import Environment, FileSystemLoader
 from shutil import copyfile
 
-from .mediawiki import (
+from mediawiki2hugo.mediawiki import (
     replace_syntax,
     get_tags,
     IMAGES,
@@ -15,7 +15,7 @@ from .mediawiki import (
     REDIRECT_F2A,
     REDIRECT_A2F,
 )
-from .file import get_filename
+from mediawiki2hugo.file import get_filename
 
 NAMESPACE = {"mediawiki": "http://www.mediawiki.org/xml/export-0.10/"}
 BLACKLIST = ("Main Page",)

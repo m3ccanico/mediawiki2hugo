@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 
-from .file import get_filename_for_title, get_filename_for_image
+from mediawiki2hugo.file import get_filename_for_title, get_filename_for_image
 
 IMAGES = set()
 PAGES = set()

@@ -33,4 +33,4 @@ def main(dump_file, md_output_path, image_source_path, image_destination_path):
 
 
 if __name__ == "__main__":
-    main()
+    main(None, None, None, None)
